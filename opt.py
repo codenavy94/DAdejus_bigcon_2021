@@ -1,6 +1,5 @@
 import argparse
 
-
 def parse_opts():
 	parser = argparse.ArgumentParser()
 
@@ -51,6 +50,16 @@ def parse_opts():
 		help='<Required> add ensemble model  <ref> -l ada xgb lgbm cat ',
 		required=True)
 
+	parser.add_argument(
+		'--optim',
+		default='adam',
+		type='str',
+		help='optim'
+	)
+	parser.add_argument(
+		'--cri',
+		default='',
+	)
 
 	args = parser.parse_args()
 
