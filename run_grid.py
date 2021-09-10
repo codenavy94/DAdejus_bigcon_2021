@@ -34,6 +34,9 @@ if platform.system() =='Darwin':
     font_path = "/Library/Fonts/applegothic.ttf"
 elif platform.system() == 'Windows':
     font_path = 'C₩'
+elif platform.system() == 'Linux':
+	font_path = '/usr/share/fonts/open-sans/OpenSans-Regular.ttf'
+
 font = font_manager.FontProperties(fname=font_path).get_name()
 rc('font', family=font)
 
@@ -55,11 +58,13 @@ def main():
 	# 	data= pickle.load(fh)
 
 	try:
-		dataset = pd.read_csv(os.path.join(opt.data_path,opt.file)).set_index('Index_ts')
+		dataset = pd.read_csv(os.path.join(opt.data_path, opt.file)).set_index('Index_ts')
 		print(dataset.shape)
 	except:
 		print(f'<PathErr> check file path :{os.path.join(opt.data_path,opt.file)}')
 		dataset = None
+
+
 
 	
 
