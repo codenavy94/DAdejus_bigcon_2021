@@ -23,6 +23,8 @@ from opt import *
 import time
 
 from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+
 from sklearn.model_selection import GridSearchCV
 from sklearn import linear_model as lm
 import xgboost as xgb
@@ -66,12 +68,26 @@ def main():
 		print(f'<PathErr> check file path :{os.path.join(opt.data_path,opt.file)}')
 		dataset = None
 
-	not_in_feature = ['NAME','PCODE', 'Date', '장타', '출루', 'OPS']
-	X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런', '루타',
-       '타점', '도루', '도실', '볼넷', '사구', '고4', '삼진', '병살', '희타', '희비', '투구',
-       'barrel', '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
-       'SSG', '홈경기수', '원정경기수']
+	not_in_feature = ['NAME', 'PCODE', 'Date', '장타', '출루', 'OPS']
+	# X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런',
+    #    '타점', '볼넷', '사구',  '삼진', '병살', '희비', '투구','루타','고4'
+    #     '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
+    #    'SSG', '홈경기수', '원정경기수']
 
+	if opt.file[:8] == 'base_bal':
+
+		X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런', '고4', '희타',
+					 '타점', '볼넷', '사구', '삼진', '병살', '희비', '투구', '루타',
+					 '타율', '홈경기수', '원정경기수']
+	elif opt.file[:8] == 'base_per':
+
+		X_feature = ['안타', '2타', '3타', '홈런', '사구', '볼넷', '고4', '병살', '삼진',
+       				'희타', '타수', '도루', '투구']
+	else:
+		X_feature = []
+
+
+	print(f'used x feature {X_feature}')
 	y_feature = opt.y_feature
 
 	X = dataset[X_feature]
@@ -222,7 +238,7 @@ def main():
 		# models = [mapped_model[model] for model in sample]
 		print(models)
 		
-		best_model, best_mae = None, float('inf')
+		best_model, best_mae, best_rmse = None, float('inf'), float('inf')
 		for model_name, model in models:
 			param_grid = params[model_name]
 			grid = GridSearchCV(model, cv=5, n_jobs=-1, param_grid=param_grid)
@@ -232,17 +248,20 @@ def main():
 			model = grid.best_estimator_
 			predictions = model.predict(X_val)
 			mae = mean_absolute_error(y_val, predictions)
+			rmse = mean_squared_error(y_val, predictions) ** 0.5
 
-			print(f" {'*'*2} model name {model_name} MAE: {mae} \n best params {model}  {'*'*2} ")
+			print(f" {'*'*2} model name {model_name} MAE: {mae} RMSE: {rmse} \n\n best params {model}  {'*'*2} ")
 
 			if mae < best_mae:
 				best_model = model
 				best_mae = mae
+				best_rmse = rmse
+
 		print(f"{'='*50}\n")
 		print(f'used model {opt.models}')
-		print(f'total best model: {best_model} params: {best_mae}\n')
+		print(f'total best model: {best_model} params: mae {best_mae} rmse {best_rmse}\n')
 
-	elif opt.modeltype =='timeseries':
+	elif opt.modeltype == 'timeseries':
 		import torch.nn as nn
 		import torch.optim as optim
 
