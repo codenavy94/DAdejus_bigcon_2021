@@ -7,21 +7,20 @@ WORKING_DIR_AND_PYTHON_PATHS = os.path.join('/', *os.getcwd().split("/"))
 sys.path.append(WORKING_DIR_AND_PYTHON_PATHS)
 # print(f'after {sys.path}')
 
-
+import warnings
 import pandas as pd
 import numpy as np
-
-import matplotlib.pyplot as plt
-import seaborn as sns
+warnings.filterwarnings(action='ignore')
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 
 #한글폰트
 import platform
-from matplotlib import font_manager, rc
+# from matplotlib import font_manager, rc
 
 import pickle as pickle
 from opt import *
 import time
-
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import GridSearchCV
@@ -180,7 +179,7 @@ def main():
 				'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], #default = 1, Typical values 0.5~1
 				'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
 				'scale_pos_weight': [1], #default = 1
-				'objective': ['binary:logistic'],
+				# 'objective': ['re'],
 				'booster': ['gbdt', 'dart'],
 				# 'seed': [2021] #default = 0,
 				# 'nthread': -1,
