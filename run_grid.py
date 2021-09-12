@@ -30,21 +30,24 @@ import xgboost as xgb
 from scipy.stats import uniform, randint
 from sklearn.ensemble import AdaBoostRegressor
 
-if platform.system() =='Darwin':
-    font_path = "/Library/Fonts/applegothic.ttf"
-elif platform.system() == 'Windows':
-    font_path = 'C₩'
-elif platform.system() == 'Linux':
-	font_path = '/usr/share/fonts/open-sans/OpenSans-Regular.ttf'
 
-font = font_manager.FontProperties(fname=font_path).get_name()
-rc('font', family=font)
+from sklearn.model_selection import train_test_split
 
-
-plt.style.use('seaborn')
-sns.set(font=font,
-        rc={"axes.unicode_minus":False},
-        style='darkgrid')
+# if platform.system() =='Darwin':
+#     font_path = "/Library/Fonts/applegothic.ttf"
+# elif platform.system() == 'Windows':
+#     font_path = 'C₩'
+# elif platform.system() == 'Linux':
+# 	font_path = '/usr/share/fonts/open-sans/OpenSans-Regular.ttf'
+#
+# font = font_manager.FontProperties(fname=font_path).get_name()
+# rc('font', family=font)
+#
+#
+# plt.style.use('seaborn')
+# sns.set(font=font,
+#         rc={"axes.unicode_minus":False},
+#         style='darkgrid')
 
 
 
@@ -64,9 +67,11 @@ def main():
 		print(f'<PathErr> check file path :{os.path.join(opt.data_path,opt.file)}')
 		dataset = None
 
-
-
-	
+	X_feature = []
+	y_feature = []
+	X = dataset[X_feature]
+	y = dataset[y_feature]
+	X_train, y_train, X_val, y_val = train_test_split(X,y, test_size=0.1)
 
 	if opt.modeltype =='ensemble':
 
@@ -76,9 +81,11 @@ def main():
 		'ada': ('AdaBoostRegressor', AdaBoostRegressor()),
 		'ridge': ('ridge', lm.Ridge()),
 		'lasso':('lasso', lm.Lasso()),
+
 		'elastic':('elastic', lm.ElasticNet()),
 		'LassoLars':('LassoLars', lm.LassoLars()),
 		'LogisticRegression':('LogisticRegression', lm.LogisticRegression()),
+
 		 }
 		n = 3
 
@@ -147,8 +154,8 @@ def main():
 		    grid = grid.fit(X_train, y_train)
 
 		    model = grid.best_estimator_
-		    predictions = model.predict(X_test)
-		    mae = mean_absolute_error(y_test, predictions)
+		    predictions = model.predict(X_val)
+		    mae = mean_absolute_error(y_val, predictions)
 
 		    print(model_name, mae)
 		    print(f'{model_name} MAE: {mae} \n best params {model}')
@@ -159,10 +166,11 @@ def main():
 
 
 	elif opt.modeltype =='timeseries':
+		import torch.nn as nn
+		import torch.optim as optim
 
-		mapped_model = []
+		mapped_model = {'lstm':('LSTM', nn.LSTM())}
 		print(opt.modeltype)
-
 
 
 
