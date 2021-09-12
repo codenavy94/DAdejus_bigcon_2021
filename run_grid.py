@@ -7,21 +7,20 @@ WORKING_DIR_AND_PYTHON_PATHS = os.path.join('/', *os.getcwd().split("/"))
 sys.path.append(WORKING_DIR_AND_PYTHON_PATHS)
 # print(f'after {sys.path}')
 
-
+import warnings
 import pandas as pd
 import numpy as np
-
-import matplotlib.pyplot as plt
-import seaborn as sns
+warnings.filterwarnings('ignore')
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 
 #한글폰트
 import platform
-from matplotlib import font_manager, rc
+# from matplotlib import font_manager, rc
 
 import pickle as pickle
 from opt import *
 import time
-
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import GridSearchCV
@@ -173,15 +172,15 @@ def main():
 
 			'xgboost' : {
 				'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
-				"n_estimators": [100, 120, 140, 150],  # default = 100
-				'max_depth': [3, 6, 9],  # default = 6, Typical values 3~10
-				'min_child_weight': [1,2,3,4,5],  # default = 1
+				# "n_estimators": [100, 120, 140, 150],  # default = 100
+				# 'max_depth': [3],  # default = 6, Typical values 3~10
+				# 'min_child_weight': [2],  # default = 1
 				# 'gamma': list(uniform(0, 0.5).rvs(n)), #default = 0
-				'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], #default = 1, Typical values 0.5~1
-				'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
-				'scale_pos_weight': [1], #default = 1
-				'objective': ['binary:logistic'],
-				'booster': ['gbdt', 'dart'],
+				# 'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], #default = 1, Typical values 0.5~1
+				# 'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
+				# 'scale_pos_weight': [1], #default = 1
+				# 'objective': ['re'],
+				# 'booster': ['gbdt', 'dart'],
 				# 'seed': [2021] #default = 0,
 				# 'nthread': -1,
 				# 'max_delta_step': [0], #default = 0, this parameter is generally not used
