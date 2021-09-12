@@ -20,7 +20,7 @@ def parse_opts():
 
 	parser.add_argument(
 		'--file',
-		default='baseball.pkl',
+		default='base_ball_train.csv',
 		type=str,
 		help='file name')
 
@@ -53,13 +53,21 @@ def parse_opts():
 	parser.add_argument(
 		'--optim',
 		default='adam',
-		type='str',
+		type=str,
 		help='optim'
 	)
 	parser.add_argument(
 		'--cri',
 		default='',
 	)
+
+	parser.add_argument(
+		'--y_feature',
+		default='장타',
+		type=str,
+		help='y feature [장타 | 출루 | ops]'
+	)
+
 
 	args = parser.parse_args()
 
