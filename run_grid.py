@@ -29,6 +29,8 @@ from sklearn import linear_model as lm
 import xgboost as xgb
 from scipy.stats import uniform, randint
 from sklearn.ensemble import AdaBoostRegressor
+
+
 from sklearn.model_selection import train_test_split
 
 # if platform.system() =='Darwin':
@@ -48,8 +50,9 @@ from sklearn.model_selection import train_test_split
 #         style='darkgrid')
 
 
+
 def main():
-	print(f"{'='*10} start gird search {'='*10}")
+	print(f"{'='*10} start grid search {'='*10}")
 	start_time = time.time()
 	opt = parse_opts()
 	print(f'- use model list {opt.models} -')
@@ -76,8 +79,13 @@ def main():
 		'lr':('lr', lm.LinearRegression(n_jobs=-1)),
 		'sgdr':('SGDRegressor', lm.SGDRegressor()),
 		'ada': ('AdaBoostRegressor', AdaBoostRegressor()),
-		'ridfe': ('ridge', lm.Ridge()),
+		'ridge': ('ridge', lm.Ridge()),
 		'lasso':('lasso', lm.Lasso()),
+
+		'elastic':('elastic', lm.ElasticNet()),
+		'LassoLars':('LassoLars', lm.LassoLars()),
+		'LogisticRegression':('LogisticRegression', lm.LogisticRegression()),
+
 		 }
 		n = 3
 
@@ -90,11 +98,13 @@ def main():
 		        'alpha': [0.01, 0.1, 1.0, 10, 100],
 		        'fit_intercept': [True, False],
 		        'normalize': [True, False],
+				'solver: ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga']
 		    },
 		    'lasso': {
 		        'alpha': [0.1, 1.0, 10],
 		        'fit_intercept': [True, False],
 		        'normalize': [True, False],
+				'selection': ['cyclic', 'random']
 		    },
 		    'elastic': {
 		        'alpha': [0.1, 1.0, 10],
@@ -112,21 +122,28 @@ def main():
 		        'fit_intercept': [True, False],
 		    },
 		    'SGDRegressor': {
-		        'penalty': ['l1', 'l2'],
-		        'alpha': [0.001, 0.01, 0.1, 1.0, 10, 100],
+				'loss': ['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+				'epsilon': [0.1, 0.15, 0.2] # applies only when 'loss' parameter is 'huber', 'epsilon_insensitive', or 'squared_epsilon_insensitive'
+		        'penalty': ['l1', 'l2', 'elasticnet'],
+				'l1_ratio':[0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9] # applies only when 'penalty' parameter is set to 'elasticnet'
+		        'alpha': [0.0001, 0.001, 0.01, 0.1, 1.0, 10, 100],
 		        'fit_intercept': [True, False],
-		    },
-		    'Perceptron' :{
-		        'penalty': ['None', 'l1', 'l2'],
-		        'alpha': [0.001, 0.01, 0.1, 1.0, 10, 100],
-		        'fit_intercept': [True, False]
+				'learning_rate': ['optimal', 'constant', 'invscaling', 'adaptive'],
+				'eta0': [0.0001, 0.001, 0.01], # applies only when 'learning rate' parameter is set to 'constant', 'invscaling', or 'adaptive'
+				'power_t': [0.15, 0.25],
 		    },
 		    'xgboost': {
 		        "gamma": uniform(0, 0.5).rvs(n),
 		        "max_depth": range(2, 7), # default 3
 		        "n_estimators": randint(100, 150).rvs(n), # default 100
-		    }
+		    },
+			'AdaBoostRegressor': {
+				'n_estimators': [50, 100],
+				'learning_rate': [0.01, 0.05, 0.1, 0.3, 1]
+				'loss': ['linear', 'square', 'exponential']
+			}
 		}
+
 		models = [mapped_model[model] for model in opt.models]
 		print(models)
 		
