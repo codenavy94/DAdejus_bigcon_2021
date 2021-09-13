@@ -59,7 +59,7 @@ def main():
 	opt = parse_opts()
 
 	if not opt.models:
-		opt.models = ['lr']
+		opt.models = ['lr','ada']
 
 	print(f'- use model list {opt.models} -')
 
@@ -98,7 +98,7 @@ def main():
 
 	X = dataset[X_feature]
 	y = dataset.loc[:, y_feature]
-
+	
 	X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1)
 
 	if opt.modeltype == 'ensemble':
