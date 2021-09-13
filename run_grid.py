@@ -59,7 +59,7 @@ def main():
 	opt = parse_opts()
 
 	if not opt.models:
-		opt.models = ['lr','ada']
+		opt.models = ['lr', 'ada', 'xgb']
 
 	print(f'- use model list {opt.models} -')
 
@@ -81,9 +81,12 @@ def main():
 
 	if opt.file[:8] == 'baseball':
 
-		X_feature = ['타수','득점','안타','2타','3타','홈런','루타','타점',
-					 '도루','도실','볼넷','사구','고4','삼진','병살','희타'
-					,'희비','투구', 'barrel']
+		# X_feature = ['타수','득점','안타','2타','3타','홈런','루타','타점',
+		# 			 '도루','도실','볼넷','사구','고4','삼진','병살','희타'
+		# 			,'희비','투구', 'barrel']
+		X_feature = ['타수', '득점', '안타', '2타', '3타', '홈런', '루타', '타점',
+					  '볼넷','고4', '삼진', '병살', '희타',
+					 '투구', 'barrel']
 
 	elif opt.file[:8] == 'base_per':
 
@@ -98,7 +101,7 @@ def main():
 
 	X = dataset[X_feature]
 	y = dataset.loc[:, y_feature]
-	
+
 	X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1)
 
 	if opt.modeltype == 'ensemble':
@@ -184,8 +187,8 @@ def main():
 				'loss': ['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
 				'epsilon': [0.1, 0.15, 0.2], # applies only when 'loss' parameter is 'huber', 'epsilon_insensitive', or 'squared_epsilon_insensitive'
 				'penalty': ['l1', 'l2', 'elasticnet'],
-				'l1_ratio':[0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], # applies only when 'penalty' parameter is set to 'elasticnet'
-				'alpha': [0.0001, 0.001, 0.01, 0.1, 1.0, 10, 100],
+				# 'l1_ratio':[0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], # applies only when 'penalty' parameter is set to 'elasticnet'
+				# 'alpha': [0.0001, 0.001, 0.01, 0.1, 1.0, 10, 100],
 				'fit_intercept': [True, False],
 				'learning_rate': ['optimal', 'constant', 'invscaling', 'adaptive'],
 				'eta0': [0.0001, 0.001, 0.01], # applies only when 'learning rate' parameter is set to 'constant', 'invscaling', or 'adaptive'
@@ -193,7 +196,7 @@ def main():
 			},
 
 			'xgboost' : {
-				'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
+				# 'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
 				"n_estimators": [100, 120, 140, 150],  # default = 100
 				# 'max_depth': [3,5,6,7],  # default = 6, Typical values 3~10
 				# 'min_child_weight': [1,2],  # default = 1
@@ -202,7 +205,7 @@ def main():
 				# 'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
 				# 'scale_pos_weight': [1], #default = 1
 				# 'objective': ['re'],
-				'booster': ['gbdt', 'dart'],
+				# 'booster': ['gbdt', 'dart'],
 				# 'seed': [2021] #default = 0,
 				# 'nthread': -1,
 				# 'max_delta_step': [0], #default = 0, this parameter is generally not used
@@ -275,6 +278,7 @@ def main():
 
 	end_time = time.time()
 	print(opt.file)
+	print(X.shape)
 	print(f'take {end_time-start_time:0.3f} s ')
 	print(f"{'='*10} end gird search {'='*10}")
 	return 
