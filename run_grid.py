@@ -9,6 +9,10 @@ sys.path.append(WORKING_DIR_AND_PYTHON_PATHS)
 
 import warnings
 import pandas as pd
+
+from random import uniform
+from random import randint
+
 import numpy as np
 warnings.filterwarnings(action='ignore')
 
@@ -59,7 +63,8 @@ def main():
 	opt = parse_opts()
 
 	if not opt.models:
-		opt.models = ['lr', 'ada', 'xgb']
+		opt.models = ['lr', 'sgdr','xgb2']
+		# opt.models = ['lgbm']
 
 	print(f'- use model list {opt.models} -')
 
@@ -69,28 +74,29 @@ def main():
 		# dataset = pd.read_csv(os.path.join(opt.data_path, opt.file)).set_index('Index_ts')
 		dataset = pd.read_csv(os.path.join(opt.data_path, opt.file))
 		print(dataset.shape)
+		print(dataset.columns)
 	except:
 		print(f'<PathErr> check file path :{os.path.join(opt.data_path,opt.file)}')
 		dataset = None
 
-	not_in_feature = ['NAME', 'PCODE', 'Date', '장타', '출루', 'OPS']
-	# X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런',
-    #    '타점', '볼넷', '사구',  '삼진', '병살', '희비', '투구','루타','고4'
-    #     '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
-    #    'SSG', '홈경기수', '원정경기수']
 
 	if opt.file[:8] == 'baseball':
 
 		# X_feature = ['타수','득점','안타','2타','3타','홈런','루타','타점',
 		# 			 '도루','도실','볼넷','사구','고4','삼진','병살','희타'
 		# 			,'희비','투구', 'barrel']
-		X_feature = ['타수', '득점', '안타', '2타', '3타', '홈런', '루타', '타점',
-					  '볼넷','고4', '삼진', '병살', '희타',
-					 '투구', 'barrel']
+
+		X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런', '루타',
+       				'타점', '도루', '도실', '볼넷', '사구', '고4', '삼진', '병살', '희타', '희비', '투구',
+       				'barrel', '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
+       				'SSG', '홈경기수', '원정경기수']
+
+		X_feature = ['홈런','2타','3타']
+
 
 	elif opt.file[:8] == 'base_per':
 
-		X_feature = ['안타', '2타', '3타', '홈런', '사구', '볼넷', '고4', '병살', '삼진',
+		X_feature = ['PCODE','안타', '2타', '3타', '홈런', '사구', '볼넷', '고4', '병살', '삼진',
        				'희타', '타수', '도루', '투구']
 	else:
 		X_feature = []
@@ -102,11 +108,15 @@ def main():
 	X = dataset[X_feature]
 	y = dataset.loc[:, y_feature]
 
+	if 'PCODE' in  X_feature:
+		X['PCODE'] = X['PCODE'].astype('category')
+
 	X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1)
 
 	if opt.modeltype == 'ensemble':
 
 		mapped_model = {'xgb': ('xgboost', xgb.XGBRegressor()),
+						'xgb2': ('xgboost2', xgb.XGBRegressor()),
 		'lr': ('lr', lm.LinearRegression(n_jobs=-1)),
 		'sgdr': ('SGDRegressor', lm.SGDRegressor()),
 		'ada': ('AdaBoostRegressor', AdaBoostRegressor()),
@@ -114,7 +124,7 @@ def main():
 		'lasso':('lasso', lm.Lasso()),
 		'elastic':('elastic', lm.ElasticNet()),
 		'LassoLars':('LassoLars', lm.LassoLars()),
-		'LogisticRegression' :('LogisticRegression', lm.LogisticRegression()),
+		'logi' :('LogisticRegression', lm.LogisticRegression()),
 		'lgbm': ('LGBM', LGBMRegressor())
 		}
 
@@ -195,7 +205,7 @@ def main():
 				'power_t': [0.15, 0.25],
 			},
 
-			'xgboost' : {
+			'xgboost2' : {
 				# 'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
 				"n_estimators": [100, 120, 140, 150],  # default = 100
 				# 'max_depth': [3,5,6,7],  # default = 6, Typical values 3~10
@@ -213,22 +223,34 @@ def main():
 				# 'colsample_bylevel': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, not used often
 				# 'lambda': [1,2,3], #default = 1, to reduce overfitting, not used often
 				# 'alpha': [0], #default = 0
+				# "enable_categorical": [True],
 		    },
+
+			'xgboost' :  {
+				'colsample_bytree': [uniform(0.7, 0.3)],
+				'gamma': [uniform(0, 0.5)],
+				'learning_rate': [uniform(0.003, 0.3)], # default 0.1
+				'max_depth': [randint(2, 6)], # default 3
+				'n_estimators': [randint(100, 250)], # default 100
+				'subsample': [uniform(0.6, 0.4)],
+
+				},
 
 			'AdaBoostRegressor' : {
 				'n_estimators': [50, 100,120],
 				'learning_rate': [0.01, 0.05, 0.1, 0.3, 1],
 				'loss': ['linear', 'square', 'exponential']
 			},
+
 			'LGBM' : {
-				"learning_rate":[0.04,0.05],
-    			"max_bin":[512,1000,1900,2000],
-    			"num_leaves":[100,250,270],
-    			"min_data_in_leaf":[5,10,15],
+				"learning_rate":[0.05, 0.04],
+    			"max_bin":[512,1000],
+    			"num_leaves":[60,80,100,110],
+    			"min_data_in_leaf":[15,18,20],
 				# 'min_data_in_leaf': [20],  # default = 100
 				'boosting_type': ['gbdt', 'dart'],  # default = 'gbdt'
-				'n_estimators': [100],  # default = 100
-				'objective': ['regression'],  # default = 'regression'
+				'n_estimators': [100,120],  # default = 100
+				# 'objective': ['regression'],  # default = 'regression'
 				# 'early_stopping_round': [50],  # default = 0
 				# 'lambda_l1': #default = 0
 				# 'lambda_l2': #default = 0
