@@ -274,11 +274,14 @@ def main():
 		import torch.optim as optim
 
 		mapped_model = {'lstm': ('LSTM', nn.LSTM())}
+		model = nn.LSTM(input_size=10, hidden_size=8)
+
 		print(opt.modeltype)
 
 	end_time = time.time()
 	print(opt.file)
 	print(X.shape)
+	print(y_feature)
 	print(f'take {end_time-start_time:0.3f} s ')
 	print(f"{'='*10} end gird search {'='*10}")
 	return 
