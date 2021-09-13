@@ -10,7 +10,8 @@ sys.path.append(WORKING_DIR_AND_PYTHON_PATHS)
 import warnings
 import pandas as pd
 import numpy as np
-warnings.filterwarnings('ignore')
+warnings.filterwarnings(action='ignore')
+
 # import matplotlib.pyplot as plt
 # import seaborn as sns
 
@@ -56,6 +57,10 @@ def main():
 	print(f"{'='*10} start grid search {'='*10}")
 	start_time = time.time()
 	opt = parse_opts()
+
+	if not opt.models:
+		opt.models = ['lr']
+
 	print(f'- use model list {opt.models} -')
 
 
@@ -74,11 +79,12 @@ def main():
     #     '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
     #    'SSG', '홈경기수', '원정경기수']
 
-	if opt.file[:8] == 'base_bal':
+	if opt.file[:8] == 'baseball':
 
-		X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런', '고4', '희타',
-					 '타점', '볼넷', '사구', '삼진', '병살', '희비', '투구', '루타',
-					 '타율', '홈경기수', '원정경기수']
+		X_feature = ['타수','득점','안타','2타','3타','홈런','루타','타점',
+					 '도루','도실','볼넷','사구','고4','삼진','병살','희타'
+					,'희비','투구', 'barrel']
+
 	elif opt.file[:8] == 'base_per':
 
 		X_feature = ['안타', '2타', '3타', '홈런', '사구', '볼넷', '고4', '병살', '삼진',
@@ -188,15 +194,15 @@ def main():
 
 			'xgboost' : {
 				'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
-				# "n_estimators": [100, 120, 140, 150],  # default = 100
-				# 'max_depth': [3],  # default = 6, Typical values 3~10
-				# 'min_child_weight': [2],  # default = 1
+				"n_estimators": [100, 120, 140, 150],  # default = 100
+				# 'max_depth': [3,5,6,7],  # default = 6, Typical values 3~10
+				# 'min_child_weight': [1,2],  # default = 1
 				# 'gamma': list(uniform(0, 0.5).rvs(n)), #default = 0
 				# 'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], #default = 1, Typical values 0.5~1
 				# 'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
 				# 'scale_pos_weight': [1], #default = 1
 				# 'objective': ['re'],
-				# 'booster': ['gbdt', 'dart'],
+				'booster': ['gbdt', 'dart'],
 				# 'seed': [2021] #default = 0,
 				# 'nthread': -1,
 				# 'max_delta_step': [0], #default = 0, this parameter is generally not used
@@ -206,17 +212,16 @@ def main():
 				# 'alpha': [0], #default = 0
 		    },
 
-
-
 			'AdaBoostRegressor' : {
-				'n_estimators': [50, 100],
+				'n_estimators': [50, 100,120],
 				'learning_rate': [0.01, 0.05, 0.1, 0.3, 1],
 				'loss': ['linear', 'square', 'exponential']
 			},
 			'LGBM' : {
-				'learning_rate': [0.005, 0.01, 0.1],  # default = 0.1
-				'max_depth': [3],  # default = -1
-				'num_leaves': [10],  # 2^(max_depth)보다 작은게 좋음 #default = 31
+				"learning_rate":[0.04,0.05],
+    			"max_bin":[512,1000,1900,2000],
+    			"num_leaves":[100,250,270],
+    			"min_data_in_leaf":[5,10,15],
 				# 'min_data_in_leaf': [20],  # default = 100
 				'boosting_type': ['gbdt', 'dart'],  # default = 'gbdt'
 				'n_estimators': [100],  # default = 100
@@ -269,6 +274,7 @@ def main():
 		print(opt.modeltype)
 
 	end_time = time.time()
+	print(opt.file)
 	print(f'take {end_time-start_time:0.3f} s ')
 	print(f"{'='*10} end gird search {'='*10}")
 	return 

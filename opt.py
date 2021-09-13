@@ -20,13 +20,13 @@ def parse_opts():
 
 	parser.add_argument(
 		'--file',
-		default='base_ball_train.csv',
+		default='baseball_train_final.csv',
 		type=str,
 		help='file name')
 
 	parser.add_argument(
 		'--windowsize',
-		default=5,
+		default=15,
 		type=int,
 		)
 
@@ -47,8 +47,9 @@ def parse_opts():
 		'-l',
 		'--models',
 		nargs='+',
-		help='<Required> add ensemble model  <ref> -l ada xgb lgbm cat ',
-		required=True)
+		help=' add ensemble model  <ref> -l ada xgb lgbm cat ',
+		# required=True
+	)
 
 	parser.add_argument(
 		'--optim',
