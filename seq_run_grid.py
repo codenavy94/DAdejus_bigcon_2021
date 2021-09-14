@@ -10,10 +10,6 @@ sys.path.append(WORKING_DIR_AND_PYTHON_PATHS)
 
 import warnings
 import pandas as pd
-
-from random import uniform
-from random import randint
-
 import numpy as np
 
 warnings.filterwarnings(action='ignore')
@@ -38,8 +34,7 @@ import xgboost as xgb
 from scipy.stats import uniform, randint
 from sklearn.ensemble import AdaBoostRegressor
 from lightgbm import LGBMRegressor
-from sklearn.ensemble import StackingRegressor
-from sklearn.ensemble import RandomForestRegressor
+
 from sklearn.model_selection import train_test_split
 
 
@@ -64,32 +59,34 @@ def main():
     print(f"{'=' * 10} start grid search {'=' * 10}")
     start_time = time.time()
     opt = parse_opts()
-
-    if not opt.models:
-        opt.models = ['xgb2', 'sgdr']
-
     print(f'- use model list {opt.models} -')
 
     try:
         # dataset = pd.read_csv(os.path.join(opt.data_path, opt.file)).set_index('Index_ts')
         dataset = pd.read_csv(os.path.join(opt.data_path, opt.file))
         print(dataset.shape)
-        print(dataset.columns)
     except:
         print(f'<PathErr> check file path :{os.path.join(opt.data_path, opt.file)}')
         dataset = None
 
+    not_in_feature = ['NAME', 'PCODE', 'Date', '장타', '출루', 'OPS']
+    # X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런',
+    #    '타점', '볼넷', '사구',  '삼진', '병살', '희비', '투구','루타','고4'
+    #     '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
+    #    'SSG', '홈경기수', '원정경기수']
+
     if opt.file[:8] == 'baseball':
 
+        X_feature = ['타수', '득점', '안타', '2타', '3타', '홈런', '루타', '타점',
+                     '도루', '도실', '볼넷', '사구', '고4', '삼진', '병살', '희타'
+            , '희비', '투구', 'barrel']
 
-        X_feature = ['선발', '득점', '안타', '2타', '3타', '홈런', '루타',
-                     '타점', '도루', '도실', '볼넷',  '삼진', '투구',
-                     'barrel']
+    elif opt.file[:8] == 'base_per':
 
-
+        X_feature = ['안타', '2타', '3타', '홈런', '사구', '볼넷', '고4', '병살', '삼진',
+                     '희타', '타수', '도루', '투구']
     else:
         X_feature = []
-
 
     print(f'used x feature {X_feature}')
     y_feature = opt.y_feature
@@ -97,15 +94,11 @@ def main():
     X = dataset[X_feature]
     y = dataset.loc[:, y_feature]
 
-    if 'PCODE' in X_feature:
-        X['PCODE'] = X['PCODE'].astype('category')
-
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.1)
 
     if opt.modeltype == 'ensemble':
 
         mapped_model = {'xgb': ('xgboost', xgb.XGBRegressor()),
-                        'xgb2': ('xgboost2', xgb.XGBRegressor()),
                         'lr': ('lr', lm.LinearRegression(n_jobs=-1)),
                         'sgdr': ('SGDRegressor', lm.SGDRegressor()),
                         'ada': ('AdaBoostRegressor', AdaBoostRegressor()),
@@ -113,9 +106,8 @@ def main():
                         'lasso': ('lasso', lm.Lasso()),
                         'elastic': ('elastic', lm.ElasticNet()),
                         'LassoLars': ('LassoLars', lm.LassoLars()),
-                        'logi': ('LogisticRegression', lm.LogisticRegression()),
-                        'lgbm': ('LGBM', LGBMRegressor()),
-                        'rf': ('RandomForest', RandomForestRegressor()),
+                        'LogisticRegression': ('LogisticRegression', lm.LogisticRegression()),
+                        'lgbm': ('LGBM', LGBMRegressor())
                         }
 
         n = 3
@@ -188,8 +180,9 @@ def main():
                 'epsilon': [0.1, 0.15, 0.2],
                 # applies only when 'loss' parameter is 'huber', 'epsilon_insensitive', or 'squared_epsilon_insensitive'
                 'penalty': ['l1', 'l2', 'elasticnet'],
-                # 'l1_ratio':[0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], # applies only when 'penalty' parameter is set to 'elasticnet'
-                # 'alpha': [0.0001, 0.001, 0.01, 0.1, 1.0, 10, 100],
+                'l1_ratio': [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85,
+                             0.9],  # applies only when 'penalty' parameter is set to 'elasticnet'
+                'alpha': [0.0001, 0.001, 0.01, 0.1, 1.0, 10, 100],
                 'fit_intercept': [True, False],
                 'learning_rate': ['optimal', 'constant', 'invscaling', 'adaptive'],
                 'eta0': [0.0001, 0.001, 0.01],
@@ -197,17 +190,17 @@ def main():
                 'power_t': [0.15, 0.25],
             },
 
-            'xgboost2': {
-                # 'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
-                "n_estimators": [70,100, 120],  # default = 100
-                'max_depth': [3,5,6,7],  # default = 6, Typical values 3~10
+            'xgboost': {
+                'eta': [0.05, 0.1, 0.15, 0.2, 0.3],  # default = 0.3, learning_rate, Typical values 0.01~0.2
+                "n_estimators": [100, 120, 140, 150],  # default = 100
+                # 'max_depth': [3,5,6,7],  # default = 6, Typical values 3~10
                 # 'min_child_weight': [1,2],  # default = 1
                 # 'gamma': list(uniform(0, 0.5).rvs(n)), #default = 0
                 # 'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], #default = 1, Typical values 0.5~1
                 # 'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
                 # 'scale_pos_weight': [1], #default = 1
                 # 'objective': ['re'],
-                # 'booster': ['gbdt', 'dart'],
+                'booster': ['gbdt', 'dart'],
                 # 'seed': [2021] #default = 0,
                 # 'nthread': -1,
                 # 'max_delta_step': [0], #default = 0, this parameter is generally not used
@@ -215,17 +208,6 @@ def main():
                 # 'colsample_bylevel': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, not used often
                 # 'lambda': [1,2,3], #default = 1, to reduce overfitting, not used often
                 # 'alpha': [0], #default = 0
-                # "enable_categorical": [True],
-            },
-
-            'xgboost': {
-                'colsample_bytree': [uniform(0.7, 0.3)],
-                'gamma': [uniform(0, 0.5)],
-                'learning_rate': [uniform(0.003, 0.3)],  # default 0.1
-                'max_depth': [randint(2, 6)],  # default 3
-                'n_estimators': [randint(100, 250)],  # default 100
-                'subsample': [uniform(0.6, 0.4)],
-
             },
 
             'AdaBoostRegressor': {
@@ -233,16 +215,15 @@ def main():
                 'learning_rate': [0.01, 0.05, 0.1, 0.3, 1],
                 'loss': ['linear', 'square', 'exponential']
             },
-
             'LGBM': {
-                "learning_rate": [0.05, 0.04],
-                "max_bin": [512, 1000],
-                "num_leaves": [60, 80, 100, 110],
-                # "min_data_in_leaf": [15, 18, 20],
+                "learning_rate": [0.04, 0.05],
+                "max_bin": [512, 1000, 1900, 2000],
+                "num_leaves": [100, 250, 270],
+                "min_data_in_leaf": [5, 10, 15],
                 # 'min_data_in_leaf': [20],  # default = 100
-                # 'boosting_type': ['gbdt', 'dart'],  # default = 'gbdt'
-                # 'n_estimators': [100, 120],  # default = 100
-                # 'objective': ['regression'],  # default = 'regression'
+                'boosting_type': ['gbdt', 'dart'],  # default = 'gbdt'
+                'n_estimators': [100],  # default = 100
+                'objective': ['regression'],  # default = 'regression'
                 # 'early_stopping_round': [50],  # default = 0
                 # 'lambda_l1': #default = 0
                 # 'lambda_l2': #default = 0
@@ -254,10 +235,6 @@ def main():
                 # 'bagging_fraction'
             },
 
-            'RandomForest': {
-                'n_estimators': [50,100]
-            },
-
         }
         sample = ['lr']
         models = [mapped_model[model] for model in opt.models]
@@ -265,10 +242,6 @@ def main():
         print(models)
 
         best_model, best_mae, best_rmse = None, float('inf'), float('inf')
-
-        level0 = list()
-        level1 = lm.LinearRegression()
-
         for model_name, model in models:
             param_grid = params[model_name]
             grid = GridSearchCV(model, cv=5, n_jobs=-1, param_grid=param_grid)
@@ -280,8 +253,6 @@ def main():
             mae = mean_absolute_error(y_val, predictions)
             rmse = mean_squared_error(y_val, predictions) ** 0.5
 
-            level0.append((f'{model_name}', model))
-
             print(f" {'*' * 2} model name {model_name} MAE: {mae} RMSE: {rmse} \n\n best params {model}  {'*' * 2} ")
 
             if mae < best_mae:
@@ -292,23 +263,14 @@ def main():
         print(f"{'=' * 50}\n")
         print(f'used model {opt.models}')
         print(f'total best model: {best_model} params: mae {best_mae} rmse {best_rmse}\n')
-        print(f"{'=' * 50}\n")
 
+    elif opt.modeltype == 'timeseries':
+        import torch.nn as nn
+        import torch.optim as optim
 
+        mapped_model = {'lstm': ('LSTM', nn.LSTM())}
+        print(opt.modeltype)
 
-
-    model = StackingRegressor(estimators=level0, final_estimator=level1, cv=5)
-    model.fit(X, y)
-
-    x_test = pd.read_csv(os.path.join(opt.data_path, 'baseball_test_final.csv'))
-    yhat = model.predict(x_test[X_feature])
-
-    print(f"final predict value {[ name for name in  zip(x_test.NAME, yhat) ]}")
-
-    # print(f"final predict value {yhat}")
-    print(opt.file)
-    print(X.shape)
-    print(y_feature)
     end_time = time.time()
     print(f'take {end_time - start_time:0.3f} s ')
     print(f"{'=' * 10} end gird search {'=' * 10}")
