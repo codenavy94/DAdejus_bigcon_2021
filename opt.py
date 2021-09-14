@@ -69,6 +69,20 @@ def parse_opts():
 		help='y feature [장타 | 출루 | ops]'
 	)
 
+	parser.add_argument(
+		'--use_cuda',
+		action='store_true',
+		help='If true, use GPU.')
+
+	parser.add_argument(
+		'--gpu',
+		default=0,
+		type=int)
+	parser.add_argument(
+		'--log_interval',
+		default=10,
+		type=int,
+		help='Log interval for showing training loss')
 
 	args = parser.parse_args()
 
