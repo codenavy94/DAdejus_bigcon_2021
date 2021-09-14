@@ -4,9 +4,9 @@ import os
 import sys
 
 WORKING_DIR_AND_PYTHON_PATHS = os.path.join('/', *os.getcwd().split("/"))
-# print(f'before {sys.path}')
+
 sys.path.append(WORKING_DIR_AND_PYTHON_PATHS)
-# print(f'after {sys.path}')
+
 
 import warnings
 import pandas as pd
@@ -14,18 +14,10 @@ import pandas as pd
 from random import uniform
 from random import randint
 
-import numpy as np
+from tqdm import tqdm
 
 warnings.filterwarnings(action='ignore')
 
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-
-# 한글폰트
-import platform
-# from matplotlib import font_manager, rc
-
-import pickle as pickle
 from opt import *
 import time
 
@@ -43,38 +35,21 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
 
-# if platform.system() =='Darwin':
-#     font_path = "/Library/Fonts/applegothic.ttf"
-# elif platform.system() == 'Windows':
-#     font_path = 'C₩'
-# elif platform.system() == 'Linux':
-# 	font_path = '/usr/share/fonts/open-sans/OpenSans-Regular.ttf'
-#
-# font = font_manager.FontProperties(fname=font_path).get_name()
-# rc('font', family=font)
-#
-#
-# plt.style.use('seaborn')
-# sns.set(font=font,
-#         rc={"axes.unicode_minus":False},
-#         style='darkgrid')
-
-
 def main():
     print(f"{'=' * 10} start grid search {'=' * 10}")
     start_time = time.time()
     opt = parse_opts()
 
     if not opt.models:
-        opt.models = ['xgb2', 'sgdr']
+        opt.models = ['rf', 'xgb2']
 
     print(f'- use model list {opt.models} -')
 
     try:
-        # dataset = pd.read_csv(os.path.join(opt.data_path, opt.file)).set_index('Index_ts')
+
         dataset = pd.read_csv(os.path.join(opt.data_path, opt.file))
-        print(dataset.shape)
-        print(dataset.columns)
+        print(f'dataset shape: {dataset.shape}')
+        print(f'dataset columns {dataset.columns.to_list()}')
     except:
         print(f'<PathErr> check file path :{os.path.join(opt.data_path, opt.file)}')
         dataset = None
@@ -82,7 +57,7 @@ def main():
     if opt.file[:8] == 'baseball':
 
 
-        X_feature = ['선발', '득점', '안타', '2타', '3타', '홈런', '루타',
+        X_feature = ['득점', '안타', '2타', '3타', '홈런','루타',
                      '타점', '도루', '도실', '볼넷',  '삼진', '투구',
                      'barrel']
 
@@ -230,8 +205,8 @@ def main():
 
             'AdaBoostRegressor': {
                 'n_estimators': [50, 100, 120],
-                'learning_rate': [0.01, 0.05, 0.1, 0.3, 1],
-                'loss': ['linear', 'square', 'exponential']
+                # 'learning_rate': [0.01, 0.05, 0.1, 0.3, 1],
+                # 'loss': ['linear', 'square', 'exponential']
             },
 
             'LGBM': {
@@ -255,21 +230,21 @@ def main():
             },
 
             'RandomForest': {
-                'n_estimators': [50,100]
+                'n_estimators': [50, 100]
             },
 
         }
-        sample = ['lr']
+
         models = [mapped_model[model] for model in opt.models]
-        # models = [mapped_model[model] for model in sample]
-        print(models)
+
+        # print(models)
 
         best_model, best_mae, best_rmse = None, float('inf'), float('inf')
 
         level0 = list()
         level1 = lm.LinearRegression()
 
-        for model_name, model in models:
+        for model_name, model in tqdm(models):
             param_grid = params[model_name]
             grid = GridSearchCV(model, cv=5, n_jobs=-1, param_grid=param_grid)
 
@@ -282,14 +257,16 @@ def main():
 
             level0.append((f'{model_name}', model))
 
-            print(f" {'*' * 2} model name {model_name} MAE: {mae} RMSE: {rmse} \n\n best params {model}  {'*' * 2} ")
+            print(f"{'-'*5:<40}{'-'*5:>40}");print(f"{'|':<40}{'|':>40}")
+            print(f" model name | {model_name} | MAE: {mae} RMSE: {rmse} \n\n best params {model}  ")
+            print(f"{'|':<40}{'|':>40}");print(f"{'-' * 5:<40}{'-' * 5:>40}")
 
             if mae < best_mae:
                 best_model = model
                 best_mae = mae
                 best_rmse = rmse
 
-        print(f"{'=' * 50}\n")
+        print(f"{'=' * 25}'total best model {'=' * 25}\n")
         print(f'used model {opt.models}')
         print(f'total best model: {best_model} params: mae {best_mae} rmse {best_rmse}\n')
         print(f"{'=' * 50}\n")
@@ -303,14 +280,12 @@ def main():
     x_test = pd.read_csv(os.path.join(opt.data_path, 'baseball_test_final.csv'))
     yhat = model.predict(x_test[X_feature])
 
+
     print(f"final predict value {[ name for name in  zip(x_test.NAME, yhat) ]}")
 
-    # print(f"final predict value {yhat}")
-    print(opt.file)
-    print(X.shape)
-    print(y_feature)
+
     end_time = time.time()
-    print(f'take {end_time - start_time:0.3f} s ')
+    print(f'from {opt.file} y_feature {y_feature}  take {end_time - start_time:0.3f} s')
     print(f"{'=' * 10} end gird search {'=' * 10}")
     return
 
