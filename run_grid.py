@@ -36,6 +36,7 @@ import xgboost as xgb
 from scipy.stats import uniform, randint
 from sklearn.ensemble import AdaBoostRegressor
 from lightgbm import LGBMRegressor
+from sklearn.ensemble import RandomForestRegressor
 
 from sklearn.model_selection import train_test_split
 
@@ -82,16 +83,16 @@ def main():
 
 	if opt.file[:8] == 'baseball':
 
-		# X_feature = ['타수','득점','안타','2타','3타','홈런','루타','타점',
-		# 			 '도루','도실','볼넷','사구','고4','삼진','병살','희타'
-		# 			,'희비','투구', 'barrel']
+		# X_feature = ['NAME', 'PCODE', 'Date', '선발', '타수', '득점', '안타', '2타', '3타', '홈런', '루타',
+		#        '타점', '도루', '도실', '볼넷', '사구', '고4', '삼진', '병살', '희타', '희비', '투구',
+		#        'barrel', '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
+		#        'SSG', '홈경기수', '원정경기수', '장타', '출루', 'OPS']
 
 		X_feature = ['선발', '타수', '득점', '안타', '2타', '3타', '홈런', '루타',
-       				'타점', '도루', '도실', '볼넷', '사구', '고4', '삼진', '병살', '희타', '희비', '투구',
-       				'barrel', '타율', 'LG', 'KIA', 'KT', '키움', '두산', '한화', 'NC', '롯데', '삼성',
-       				'SSG', '홈경기수', '원정경기수']
+       '타점', '도루', '볼넷', '사구', '고4', '삼진',  '투구',
+       'barrel', '타율']
 
-		X_feature = ['홈런','2타','3타']
+		# X_feature = ['홈런','2타','3타']
 
 
 	elif opt.file[:8] == 'base_per':
@@ -125,7 +126,8 @@ def main():
 		'elastic':('elastic', lm.ElasticNet()),
 		'LassoLars':('LassoLars', lm.LassoLars()),
 		'logi' :('LogisticRegression', lm.LogisticRegression()),
-		'lgbm': ('LGBM', LGBMRegressor())
+		'lgbm': ('LGBM', LGBMRegressor()),
+		'rf': ('RF', RandomForestRegressor())
 		}
 
 		n = 3
@@ -205,34 +207,13 @@ def main():
 				'power_t': [0.15, 0.25],
 			},
 
-			'xgboost2' : {
-				# 'eta': [0.05, 0.1, 0.15, 0.2, 0.3], #default = 0.3, learning_rate, Typical values 0.01~0.2
-				"n_estimators": [100, 120, 140, 150],  # default = 100
-				# 'max_depth': [3,5,6,7],  # default = 6, Typical values 3~10
-				# 'min_child_weight': [1,2],  # default = 1
-				# 'gamma': list(uniform(0, 0.5).rvs(n)), #default = 0
-				# 'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], #default = 1, Typical values 0.5~1
-				# 'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, Typical values 0.5~1
-				# 'scale_pos_weight': [1], #default = 1
-				# 'objective': ['re'],
-				# 'booster': ['gbdt', 'dart'],
-				# 'seed': [2021] #default = 0,
-				# 'nthread': -1,
-				# 'max_delta_step': [0], #default = 0, this parameter is generally not used
-				# 'sampling_method': ['uniform', 'gradient_based'], #default = uniform
-				# 'colsample_bylevel': [0.5, 0.6, 0.7, 0.8, 0.9, 1], #default = 1, not used often
-				# 'lambda': [1,2,3], #default = 1, to reduce overfitting, not used often
-				# 'alpha': [0], #default = 0
-				# "enable_categorical": [True],
-		    },
-
 			'xgboost' :  {
-				'colsample_bytree': [uniform(0.7, 0.3)],
-				'gamma': [uniform(0, 0.5)],
-				'learning_rate': [uniform(0.003, 0.3)], # default 0.1
-				'max_depth': [randint(2, 6)], # default 3
-				'n_estimators': [randint(100, 250)], # default 100
-				'subsample': [uniform(0.6, 0.4)],
+				# 'colsample_bytree': [uniform(0.7, 0.3)],
+				# 'gamma': [uniform(0, 0.5)],
+				# 'learning_rate': [uniform(0.003, 0.3)], # default 0.1
+				# 'max_depth': [randint(2, 6)], # default 3
+				# 'n_estimators': [randint(100, 250)], # default 100
+				# 'subsample': [uniform(0.6, 0.4)],
 
 				},
 
@@ -243,13 +224,13 @@ def main():
 			},
 
 			'LGBM' : {
-				"learning_rate":[0.05, 0.04],
-    			"max_bin":[512,1000],
-    			"num_leaves":[60,80,100,110],
-    			"min_data_in_leaf":[15,18,20],
-				# 'min_data_in_leaf': [20],  # default = 100
-				'boosting_type': ['gbdt', 'dart'],  # default = 'gbdt'
-				'n_estimators': [100,120],  # default = 100
+				# "learning_rate":[0.05, 0.04],
+    			# "max_bin":[512,1000],
+    			# "num_leaves":[60,80,100,110],
+    			# "min_data_in_leaf":[15,18,20],
+				# # 'min_data_in_leaf': [20],  # default = 100
+				# 'boosting_type': ['gbdt', 'dart'],  # default = 'gbdt'
+				# 'n_estimators': [100,120],  # default = 100
 				# 'objective': ['regression'],  # default = 'regression'
 				# 'early_stopping_round': [50],  # default = 0
 				# 'lambda_l1': #default = 0
@@ -260,6 +241,12 @@ def main():
 				# 'lambda'
 				# 'feature_fraction'
 				# 'bagging_fraction'
+			},
+			'RF': {
+				# "learning_rate":[0.05, 0.04],
+				# "max_bin":[512,1000],
+				# "num_leaves":[60,80,100,110],
+
 			},
 
 		}
