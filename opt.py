@@ -1,6 +1,5 @@
 import argparse
 
-
 def parse_opts():
 	parser = argparse.ArgumentParser()
 
@@ -21,13 +20,13 @@ def parse_opts():
 
 	parser.add_argument(
 		'--file',
-		default='baseball.pkl',
+		default='baseball_train_final3.csv',
 		type=str,
 		help='file name')
 
 	parser.add_argument(
 		'--windowsize',
-		default=5,
+		default=15,
 		type=int,
 		)
 
@@ -48,9 +47,42 @@ def parse_opts():
 		'-l',
 		'--models',
 		nargs='+',
-		help='<Required> add ensemble model  <ref> -l ada xgb lgbm cat ',
-		required=True)
+		help=' add ensemble model  <ref> -l ada xgb lgbm cat ',
+		# required=True
+	)
 
+	parser.add_argument(
+		'--optim',
+		default='adam',
+		type=str,
+		help='optim'
+	)
+	parser.add_argument(
+		'--cri',
+		default='',
+	)
+
+	parser.add_argument(
+		'--y_feature',
+		default='장타',
+		type=str,
+		help='y feature [장타 | 출루 | ops]'
+	)
+
+	parser.add_argument(
+		'--use_cuda',
+		action='store_true',
+		help='If true, use GPU.')
+
+	parser.add_argument(
+		'--gpu',
+		default=0,
+		type=int)
+	parser.add_argument(
+		'--log_interval',
+		default=10,
+		type=int,
+		help='Log interval for showing training loss')
 
 	args = parser.parse_args()
 
